@@ -1,0 +1,13 @@
+{
+  "name": "archee-desktop",
+  "version": "13.134.1",
+  "private": true,
+  "scripts": {
+    "dev": "ARCHEE_URL=${ARCHEE_URL:-https://dev.archee.studio/chat} tauri dev",
+    "build": "tauri build",
+    "test": "cd src-tauri && cargo test"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

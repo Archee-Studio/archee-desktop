@@ -1,0 +1,15 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "The Studio window: drag the window from its headers, zoom the page by keyboard and open links in the browser. Nothing else.",
+  "windows": ["main"],
+  "remote": {
+    "urls": ["https://*.archee.studio", "http://127.0.0.1:*", "http://localhost:*"]
+  },
+  "permissions": [
+    "core:window:allow-start-dragging",
+    "core:window:allow-toggle-maximize",
+    "core:webview:allow-set-webview-zoom",
+    "opener:default"
+  ]
+}

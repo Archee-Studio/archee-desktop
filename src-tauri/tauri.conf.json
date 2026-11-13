@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Archee Studio",
+  "version": "../package.json",
+  "identifier": "studio.archee.desktop",
+  "build": {
+    "frontendDist": "../boot"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg", "msi"],
+    "category": "DeveloperTool",
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
+    "macOS": {
+      "minimumSystemVersion": "13.0"
+    },
+    "windows": {
+      "wix": {
+        "upgradeCode": "e5cb5de5-1445-4f18-82a5-940d4fe85923"
+      }
+    }
+  }
+}

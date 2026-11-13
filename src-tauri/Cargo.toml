@@ -1,0 +1,26 @@
+[package]
+name = "archee-desktop"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Archee Studio for the desktop: a native window around the web app."
+
+# Its own workspace: the desktop shell's dependencies stay out of core's lockfile and builds.
+[workspace]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+tauri-plugin-single-instance = "2"
+tauri-plugin-window-state = "2"
+url = "2"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true
