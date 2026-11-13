@@ -84,6 +84,11 @@ jobs:
         run: |
           bun install --frozen-lockfile
           bun run build -- --target "${{ matrix.triple }}" --bundles dmg
+      - name: Check the signature
+        # The bundle is ad-hoc signed ("signingIdentity": "-" in tauri.conf.json). A bundle whose binary
+        # alone is signed is reported by macOS as damaged, with no way to open it, so it never ships.
+        run: |
+          codesign --verify --deep --strict --verbose=2 src-tauri/target/${{ matrix.triple }}/release/bundle/macos/*.app
       - name: Name and checksum
         run: |
           mkdir out

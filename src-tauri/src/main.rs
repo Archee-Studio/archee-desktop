@@ -22,9 +22,12 @@ fn start_url() -> Url {
 }
 
 /// The page may navigate within Archee and the local preview; anything else opens outside.
+/// The hook also sees frames, so the sign-in check's Cloudflare Turnstile frame must stay in:
+/// sent to the browser, it never loads and the check never finishes.
 fn stays_inside(url: &Url, home: &Url) -> bool {
     let host = url.host_str().unwrap_or_default();
     url.origin() == home.origin()
+        || (url.scheme() == "https" && host == "challenges.cloudflare.com")
         || host == "archee.studio"
         || host.ends_with(".archee.studio")
         || host == "127.0.0.1"
@@ -45,23 +48,24 @@ fn main() {
         .plugin(tauri_plugin_opener::init())
         .setup(move |app| {
             let inside = home.clone();
-            let builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::External(home.clone()))
-                .title("Archee Studio")
-                .inner_size(1440.0, 900.0)
-                .min_inner_size(960.0, 600.0)
-                // Windows (WebView2): this is the only switch for Ctrl +/-/0 and pinch, both off by
-                // default. The page's pinch guard cancels the pinch; the keys keep working.
-                // macOS (WKWebView) ignores it: host.js maps the keys to set_zoom there, and a
-                // pinch reaches the page as gesture events the same guard cancels.
-                .zoom_hotkeys_enabled(true)
-                .initialization_script(HOST_SCRIPT)
-                .on_navigation(move |url| {
-                    if stays_inside(url, &inside) {
-                        return true;
-                    }
-                    let _ = tauri_plugin_opener::open_url(url.as_str(), None::<&str>);
-                    false
-                });
+            let builder =
+                WebviewWindowBuilder::new(app, "main", WebviewUrl::External(home.clone()))
+                    .title("Archee Studio")
+                    .inner_size(1440.0, 900.0)
+                    .min_inner_size(960.0, 600.0)
+                    // Windows (WebView2): this is the only switch for Ctrl +/-/0 and pinch, both off by
+                    // default. The page's pinch guard cancels the pinch; the keys keep working.
+                    // macOS (WKWebView) ignores it: host.js maps the keys to set_zoom there, and a
+                    // pinch reaches the page as gesture events the same guard cancels.
+                    .zoom_hotkeys_enabled(true)
+                    .initialization_script(HOST_SCRIPT)
+                    .on_navigation(move |url| {
+                        if stays_inside(url, &inside) {
+                            return true;
+                        }
+                        let _ = tauri_plugin_opener::open_url(url.as_str(), None::<&str>);
+                        false
+                    });
             #[cfg(target_os = "macos")]
             let builder = builder
                 .title_bar_style(tauri::TitleBarStyle::Overlay)
@@ -85,16 +89,29 @@ mod tests {
             "https://dev.archee.studio/login",
             "https://docs.archee.studio/",
             "http://127.0.0.1:3010/chat",
+            "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/if/ov2/av0/rcv/x",
         ] {
-            assert!(stays_inside(&Url::parse(inside).unwrap(), &home), "{inside}");
+            assert!(
+                stays_inside(&Url::parse(inside).unwrap(), &home),
+                "{inside}"
+            );
         }
     }
 
     #[test]
     fn foreign_links_open_in_the_browser() {
         let home = Url::parse(DEFAULT_URL).unwrap();
-        for outside in ["https://github.com/x", "https://archee.studio.evil.com/", "mailto:a@b.c"] {
-            assert!(!stays_inside(&Url::parse(outside).unwrap(), &home), "{outside}");
+        for outside in [
+            "https://github.com/x",
+            "https://archee.studio.evil.com/",
+            "mailto:a@b.c",
+            "https://www.cloudflare.com/",
+            "http://challenges.cloudflare.com/",
+        ] {
+            assert!(
+                !stays_inside(&Url::parse(outside).unwrap(), &home),
+                "{outside}"
+            );
         }
     }
 }
