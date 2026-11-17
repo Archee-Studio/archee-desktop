@@ -40,18 +40,29 @@
   if (os === "macos") {
     const KEY = "archee.desktop.zoom";
     const STEPS = [0.5, 0.67, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3];
+    const readSaved = () => {
+      try {
+        return localStorage.getItem(KEY);
+      } catch (error) {
+        if (error?.name === "SecurityError" || error?.name === "QuotaExceededError") return null;
+        throw error;
+      }
+    };
     const apply = (level) => {
+      current = level;
       try {
         localStorage.setItem(KEY, String(level));
-      } catch {}
+      } catch (error) {
+        if (error?.name !== "SecurityError" && error?.name !== "QuotaExceededError") throw error;
+      }
       window.__TAURI__?.webview?.getCurrentWebview?.().setZoom(level);
     };
-    const saved = Number(localStorage.getItem(KEY));
-    if (STEPS.includes(saved) && saved !== 1) addEventListener("DOMContentLoaded", () => apply(saved));
+    const saved = Number(readSaved());
+    let current = STEPS.includes(saved) ? saved : 1;
+    if (current !== 1) addEventListener("DOMContentLoaded", () => apply(current));
     addEventListener("keydown", (event) => {
       if (!event.metaKey || event.ctrlKey || event.altKey) return;
-      const now = Number(localStorage.getItem(KEY)) || 1;
-      const at = Math.max(0, STEPS.indexOf(now));
+      const at = STEPS.indexOf(current);
       let next = null;
       if (event.key === "=" || event.key === "+") next = STEPS[Math.min(STEPS.length - 1, at + 1)];
       else if (event.key === "-") next = STEPS[Math.max(0, at - 1)];

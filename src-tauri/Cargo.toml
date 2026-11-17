@@ -1,6 +1,6 @@
 [package]
 name = "archee-desktop"
-version = "0.1.0"
+version = "16.5.0"
 edition = "2024"
 publish = false
 description = "Archee Studio for the desktop: a native window around the web app."
