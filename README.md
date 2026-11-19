@@ -1,25 +1,22 @@
-# Archee Studio for the desktop
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/banner-dark.png">
+  <img alt="Archee Studio for the desktop: a native window with the chat and a drawing" src="assets/banner-light.png">
+</picture>
 
-A native window around [Archee Studio](https://archee.studio), built with [Tauri](https://tauri.app). It hosts the web app and adds what a desktop window needs: a draggable title bar, zoom keys and opening outside links in your browser.
+**Archee Studio in a native window**, for macOS and Windows.
 
-## Install
-
-- **Download:** [archee.studio/download](https://archee.studio/download/) for macOS (Apple silicon and Intel) and Windows.
-- **Homebrew:** `brew install --cask archee-studio/tap/archee-desktop`
-
-Each [release](https://github.com/Archee-Studio/archee-desktop/releases) lists a SHA-256 checksum for every installer.
-
-## Build from source
-
-You need [Rust](https://rustup.rs) and [Bun](https://bun.sh).
-
-```bash
-bun install
-bun run build    # the installer for your system, in src-tauri/target/release/bundle
+```sh
+brew install --cask archee-studio/tap/archee-desktop
 ```
 
-This repository is published from the Archee Studio source with each release; pull requests are not merged here. Report a security issue as described in [SECURITY.md](SECURITY.md).
+Or download from [archee.studio/download](https://archee.studio/download/). Each [release](https://github.com/Archee-Studio/archee-desktop/releases) lists a SHA-256 for every installer.
 
-## License
+## For agents
 
-[Apache License 2.0](LICENSE).
+```text
+Read AGENTS.md in this repository. Then build the installer for my system with `bun install && bun run build` and tell me where it is.
+```
+
+## Licence
+
+[Apache-2.0](LICENSE). Published from the Archee Studio source with each release. Security: [SECURITY.md](SECURITY.md).

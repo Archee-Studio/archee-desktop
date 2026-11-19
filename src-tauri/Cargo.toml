@@ -1,6 +1,6 @@
 [package]
 name = "archee-desktop"
-version = "16.22.0"
+version = "16.46.0"
 edition = "2024"
 publish = false
 description = "Archee Studio for the desktop: a native window around the web app."
@@ -8,15 +8,75 @@ description = "Archee Studio for the desktop: a native window around the web app
 # Its own workspace: the desktop shell's dependencies stay out of core's lockfile and builds.
 [workspace]
 
+# build.rs calls tauri_build::build(); cargo-machete with metadata does not scan build scripts.
+[package.metadata.cargo-machete]
+ignored = ["tauri-build"]
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
+open = "5"
 tauri = { version = "2", features = [] }
-tauri-plugin-opener = "2"
 tauri-plugin-single-instance = "2"
 tauri-plugin-window-state = "2"
 url = "2"
+
+# Its own workspace cannot inherit core's lint table, so this copy is kept identical to it.
+[lints.rust]
+unsafe_code = "forbid"
+unsafe_op_in_unsafe_fn = "warn"
+missing_debug_implementations = "warn"
+unreachable_pub = "warn"
+rust_2018_idioms = { level = "warn", priority = -1 }
+# `cfg(kani)` gates the Kani proof modules; it is never set by a normal build.
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+# No hidden panics outside tests (clippy.toml exempts #[test] functions).
+unwrap_used = "warn"
+expect_used = "warn"
+panic = "warn"
+unimplemented = "warn"
+todo = "warn"
+dbg_macro = "warn"
+indexing_slicing = "warn"
+get_unwrap = "warn"
+panic_in_result_fn = "warn"
+missing_panics_doc = "warn"
+mem_forget = "warn"
+# Libraries return data and diagnostics; only executable boundaries print.
+print_stdout = "warn"
+print_stderr = "warn"
+# Every suppression says why, and `#[expect]` makes it expire when the code is fixed.
+allow_attributes = "warn"
+allow_attributes_without_reason = "warn"
+undocumented_unsafe_blocks = "warn"
+multiple_unsafe_ops_per_block = "warn"
+# API shape and ownership.
+fn_params_excessive_bools = "warn"
+struct_excessive_bools = "warn"
+clone_on_ref_ptr = "warn"
+redundant_clone = "warn"
+implicit_clone = "warn"
+assigning_clones = "warn"
+format_push_string = "warn"
+rc_buffer = "warn"
+string_add = "warn"
+wildcard_imports = "warn"
+# Failures are returned or logged, never dropped or reduced to a unit.
+missing_errors_doc = "warn"
+map_err_ignore = "warn"
+let_underscore_must_use = "warn"
+unused_result_ok = "warn"
+# Exact float equality is a bug in geometry; compare within a tolerance.
+float_cmp = "warn"
+cognitive_complexity = "warn"
+# Casts that silently lose information.
+as_conversions = "warn"
+cast_possible_truncation = "warn"
+cast_sign_loss = "warn"
 
 [profile.release]
 codegen-units = 1
