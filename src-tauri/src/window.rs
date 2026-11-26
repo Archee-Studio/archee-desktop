@@ -34,9 +34,14 @@ fn host_window<'a, M: Manager<tauri::Wry>>(
     label: &str,
     url: WebviewUrl,
     home: &Url,
+    load: navigation::Load,
 ) -> WebviewWindowBuilder<'a, tauri::Wry, M> {
     let app = manager.app_handle().clone();
     let (inside, nested) = (home.clone(), home.clone());
+    // A window the page opened hosts its generated blob:/data: documents, so it keeps the wider
+    // policy; the main window never navigates to either scheme, where a link could dress a page
+    // the app wrote as Archee itself.
+    let opened = matches!(load, navigation::Load::Open);
     let builder = WebviewWindowBuilder::new(manager, label, url)
         .title("Archee Studio")
         .inner_size(1440.0, 900.0)
@@ -48,7 +53,12 @@ fn host_window<'a, M: Manager<tauri::Wry>>(
         .zoom_hotkeys_enabled(true)
         .initialization_script(host::script())
         .on_navigation(move |url| {
-            if navigation::stays_inside(url, &inside) {
+            let allowed = if opened {
+                navigation::opens_inside(url, &inside)
+            } else {
+                navigation::navigates_inside(url, &inside)
+            };
+            if allowed {
                 return true;
             }
             navigation::open_outside(url);
@@ -68,7 +78,14 @@ fn host_window<'a, M: Manager<tauri::Wry>>(
 ///
 /// Returns the error of the system refusing to create the window or its webview.
 pub(crate) fn open_main(app: &AppHandle, home: &Url) -> tauri::Result<WebviewWindow> {
-    host_window(app, MAIN, WebviewUrl::External(home.clone()), home).build()
+    host_window(
+        app,
+        MAIN,
+        WebviewUrl::External(home.clone()),
+        home,
+        navigation::Load::Navigate,
+    )
+    .build()
 }
 
 /// The page asked for a new window. Archee's own pages, `blob:` and `data:` documents open in a
@@ -80,15 +97,21 @@ fn open_new(
     url: &Url,
     features: NewWindowFeatures,
 ) -> NewWindowResponse<tauri::Wry> {
-    if !navigation::stays_inside(url, home) {
+    if navigation::opens_elsewhere(url, home) {
         navigation::open_outside(url);
         return NewWindowResponse::Deny;
     }
     let label = format!("{OPENED_PREFIX}{}", OPENED.fetch_add(1, Ordering::Relaxed));
     // The system loads `url` into the webview it is given, so the builder starts on a blank page.
-    let built = host_window(app, &label, WebviewUrl::External(blank()), home)
-        .window_features(features)
-        .build();
+    let built = host_window(
+        app,
+        &label,
+        WebviewUrl::External(blank()),
+        home,
+        navigation::Load::Open,
+    )
+    .window_features(features)
+    .build();
     match built {
         Ok(window) => {
             #[cfg(target_os = "macos")]

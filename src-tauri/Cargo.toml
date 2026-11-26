@@ -1,6 +1,6 @@
 [package]
 name = "archee-desktop"
-version = "16.46.0"
+version = "22.17.4"
 edition = "2024"
 publish = false
 description = "Archee Studio for the desktop: a native window around the web app."
@@ -17,10 +17,14 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 open = "5"
-tauri = { version = "2", features = [] }
+# Drop `compression` (brotli/flate2): the local frontend is only the tiny blank boot page.
+tauri = { version = "2", default-features = false, features = ["wry", "dynamic-acl"] }
 tauri-plugin-single-instance = "2"
 tauri-plugin-window-state = "2"
 url = "2"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+tauri = { version = "2", default-features = false, features = ["dbus", "x11"] }
 
 # Its own workspace cannot inherit core's lint table, so this copy is kept identical to it.
 [lints.rust]
@@ -81,6 +85,6 @@ cast_sign_loss = "warn"
 [profile.release]
 codegen-units = 1
 lto = true
-opt-level = "s"
+opt-level = "z"
 panic = "abort"
 strip = true

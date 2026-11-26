@@ -1,6 +1,6 @@
 {
   "name": "archee-desktop",
-  "version": "16.46.0",
+  "version": "22.17.4",
   "private": true,
   "scripts": {
     "dev": "ARCHEE_URL=${ARCHEE_URL:-https://dev.archee.studio/chat} tauri dev",
